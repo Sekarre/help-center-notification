@@ -2,7 +2,6 @@ package com.sekarre.helpcenternotification.controllers;
 
 import com.sekarre.helpcenternotification.DTO.NotificationDTO;
 import com.sekarre.helpcenternotification.domain.enums.EventType;
-import com.sekarre.helpcenternotification.security.perms.NotificationPermission;
 import com.sekarre.helpcenternotification.services.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +23,6 @@ public class NotificationController {
         return notificationService.getAllUnreadNotifications();
     }
 
-    @NotificationPermission
     @PatchMapping("/{destinationId}")
     public void markEventNotificationAsRead(@PathVariable String destinationId, @RequestParam String eventType) {
         notificationService.markNotificationAsRead(destinationId, Enum.valueOf(EventType.class, eventType));

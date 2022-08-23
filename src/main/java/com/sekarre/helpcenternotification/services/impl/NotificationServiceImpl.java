@@ -52,6 +52,21 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void markNotificationAsRead(String destinationId, EventType eventType) {
+        switch (eventType) {
+            case CHAT_ALL -> {
+                marAsRead(destinationId, EventType.REMOVED_FROM_CHAT);
+                marAsRead(destinationId, EventType.NEW_CHAT_MESSAGE);
+            }
+            case ISSUE_ALL -> {
+                marAsRead(destinationId, EventType.ASSIGNED_TO_ISSUE);
+                marAsRead(destinationId, EventType.NEW_ISSUE);
+                marAsRead(destinationId, EventType.NEW_ISSUE_COMMENT);
+            }
+            default -> marAsRead(destinationId, eventType);
+        }
+    }
+
+    private void marAsRead(String destinationId, EventType eventType) {
         List<Notification> notifications = notificationRepository
                 .findAllByDestinationIdAndUserIdAndEventType(destinationId, getCurrentUser().getId(), eventType);
         if (notifications.isEmpty()) {

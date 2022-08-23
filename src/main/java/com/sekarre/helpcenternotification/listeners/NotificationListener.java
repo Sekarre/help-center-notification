@@ -1,6 +1,6 @@
 package com.sekarre.helpcenternotification.listeners;
 
-import com.sekarre.helpcentercore.DTO.notification.NotificationQueueDTO;
+import com.sekarre.helpcenternotification.DTO.NotificationQueueDTO;
 import com.sekarre.helpcenternotification.services.NotificationEmitterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ public class NotificationListener {
 
     private final NotificationEmitterService notificationEmitterService;
 
-    @RabbitListener(queues = "${notification.queue.name}")
+    @RabbitListener(queues = "${notification.queue.name}", containerFactory = "notificationListenerContainerFactory")
     public void receiveNewNotification(@Payload NotificationQueueDTO notificationQueueDTO) {
       log.debug(notificationQueueDTO.toString());
       notificationEmitterService.saveAndSendNotification(notificationQueueDTO);
