@@ -1,5 +1,6 @@
 package com.sekarre.helpcenternotification.services.impl;
 
+import com.sekarre.helpcentercore.DTO.notification.NotificationQueueDTO;
 import com.sekarre.helpcenternotification.domain.enums.EventType;
 import com.sekarre.helpcenternotification.services.NotificationEmitterService;
 import com.sekarre.helpcenternotification.services.NotificationService;
@@ -50,28 +51,31 @@ public class NotificationEmitterServiceImpl implements NotificationEmitterServic
     }
 
     @Override
-    public void sendNewNotificationMessage(EventType eventType, String destinationId) {
-        Long userId = getCurrentUser().getId();
-        try {
-            emitterMap.get(userId).send(SseEmitter.event().name(eventType.name()).data(destinationId).build());
-        } catch (IOException e) {
-            log.debug("Emitter send event failed for id: " + userId + " and event: " + eventType);
+    public void saveAndSendNotification(EventType eventType, String destinationId, Long[] usersId) {
+        for (Long userId : usersId) {
+            saveAndSendNotification(eventType, destinationId, userId);
         }
     }
 
     @Override
-    public void sendNewNotificationMessage(EventType eventType, String destinationId, Long[] usersId) {
-        for (Long userId : usersId) {
-            try {
-                if (!eventNotificationService.isNotificationStopped(destinationId, userId, eventType)) {
-                    if (emitterMap.containsKey(userId)) {
-                        emitterMap.get(userId).send(SseEmitter.event().name(eventType.name()).data(destinationId).build());
-                    }
-                    eventNotificationService.saveNotification(eventType, destinationId, userId);
+    public void saveAndSendNotification(NotificationQueueDTO notificationQueueDTO) {
+        EventType eventType = Enum.valueOf(EventType.class, notificationQueueDTO.getEventType());
+        String destinationId = notificationQueueDTO.getDestinationId();
+        Long userId = notificationQueueDTO.getUserId();
+        saveAndSendNotification(eventType, destinationId, userId);
+    }
+
+    private void saveAndSendNotification(EventType eventType, String destinationId, Long userId) {
+        try {
+            if (!eventNotificationService.isNotificationStopped(destinationId, userId, eventType)) {
+                if (emitterMap.containsKey(userId)) {
+                    emitterMap.get(userId)
+                            .send(SseEmitter.event().name(eventType.name()).data(destinationId).build());
                 }
-            } catch (IOException e) {
-                log.debug("Emitter send event failed for id: " + userId + " and event: " + eventType);
+                eventNotificationService.saveNotification(eventType, destinationId, userId);
             }
+        } catch (IOException e) {
+            log.debug("Emitter send event failed for id: " + userId + " and event: " + eventType);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.sekarre.helpcenternotification.services;
 
 
+import com.sekarre.helpcentercore.DTO.notification.NotificationQueueDTO;
 import com.sekarre.helpcenternotification.DTO.NotificationDTO;
 import com.sekarre.helpcenternotification.domain.enums.EventType;
 
