@@ -1,7 +1,8 @@
 package com.sekarre.helpcenternotification.listeners;
 
+import com.sekarre.helpcenternotification.DTO.NotificationLimiterQueueDTO;
 import com.sekarre.helpcenternotification.DTO.NotificationQueueDTO;
-import com.sekarre.helpcenternotification.services.NotificationEmitterService;
+import com.sekarre.helpcenternotification.services.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -13,11 +14,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotificationListener {
 
-    private final NotificationEmitterService notificationEmitterService;
+    private final NotificationService notificationService;
 
     @RabbitListener(queues = "${notification.queue.name}", containerFactory = "notificationListenerContainerFactory")
     public void receiveNewNotification(@Payload NotificationQueueDTO notificationQueueDTO) {
       log.debug(notificationQueueDTO.toString());
-      notificationEmitterService.saveAndSendNotification(notificationQueueDTO);
+        notificationService.saveAndSendNotification(notificationQueueDTO);
+    }
+
+    @RabbitListener(queues = "${notification.limiter.queue.name}", containerFactory = "notificationListenerContainerFactory")
+    public void receiveNewNotificationLimiter(@Payload NotificationLimiterQueueDTO notificationLimiterQueueDTO) {
+        log.debug(notificationLimiterQueueDTO.toString());
+        if (notificationLimiterQueueDTO.isLimited()) {
+            notificationService.startNotificationForDestination(notificationLimiterQueueDTO);
+        } else {
+            notificationService.stopNotificationForDestination(notificationLimiterQueueDTO);
+        }
     }
 }

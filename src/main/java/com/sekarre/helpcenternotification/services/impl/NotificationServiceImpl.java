@@ -1,6 +1,8 @@
 package com.sekarre.helpcenternotification.services.impl;
 
 import com.sekarre.helpcenternotification.DTO.NotificationDTO;
+import com.sekarre.helpcenternotification.DTO.NotificationLimiterQueueDTO;
+import com.sekarre.helpcenternotification.DTO.NotificationQueueDTO;
 import com.sekarre.helpcenternotification.domain.Notification;
 import com.sekarre.helpcenternotification.domain.NotificationLimiter;
 import com.sekarre.helpcenternotification.domain.enums.EventType;
@@ -8,6 +10,7 @@ import com.sekarre.helpcenternotification.exceptions.notification.NotificationAu
 import com.sekarre.helpcenternotification.mappers.NotificationMapper;
 import com.sekarre.helpcenternotification.repositories.NotificationLimiterRepository;
 import com.sekarre.helpcenternotification.repositories.NotificationRepository;
+import com.sekarre.helpcenternotification.services.NotificationEmitterService;
 import com.sekarre.helpcenternotification.services.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +30,18 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationLimiterRepository notificationLimiterRepository;
     private final NotificationMapper notificationMapper;
+    private final NotificationEmitterService notificationEmitterService;
+
+    @Override
+    public void saveAndSendNotification(NotificationQueueDTO notificationQueueDTO) {
+        EventType eventType = Enum.valueOf(EventType.class, notificationQueueDTO.getEventType());
+        String destinationId = notificationQueueDTO.getDestinationId();
+        Long userId = notificationQueueDTO.getUserId();
+        if (!isNotificationStopped(destinationId, userId, eventType)) {
+            notificationEmitterService.sendNotification(notificationQueueDTO);
+            saveNotification(eventType, destinationId, userId);
+        }
+    }
 
     @Override
     public void saveNotification(EventType eventType, String destinationId, Long userId) {
@@ -87,8 +102,12 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void stopNotificationForDestination(String destinationId, Long userId, EventType eventType) {
-        notificationLimiterRepository.save(NotificationLimiter.builder().destinationId(destinationId).eventType(eventType).userId(userId).build());
+    public void stopNotificationForDestination(NotificationLimiterQueueDTO notificationLimiterQueueDTO) {
+        notificationLimiterRepository.save(NotificationLimiter.builder()
+                .destinationId(notificationLimiterQueueDTO.getDestinationId())
+                .eventType(Enum.valueOf(EventType.class, notificationLimiterQueueDTO.getEventType()))
+                .userId(notificationLimiterQueueDTO.getUserId())
+                .build());
     }
 
     @Override
@@ -97,8 +116,11 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void startNotificationForDestination(String destinationId, Long userId, EventType eventType) {
-        notificationLimiterRepository.deleteByDestinationIdAndUserIdAndEventType(destinationId, userId, eventType);
+    public void startNotificationForDestination(NotificationLimiterQueueDTO notificationLimiterQueueDTO) {
+        notificationLimiterRepository.deleteByDestinationIdAndUserIdAndEventType(
+                notificationLimiterQueueDTO.getDestinationId(),
+                notificationLimiterQueueDTO.getUserId(),
+                Enum.valueOf(EventType.class, notificationLimiterQueueDTO.getEventType()));
     }
 
     private void checkIfAuthorizedToEditNotification(Notification notification) {

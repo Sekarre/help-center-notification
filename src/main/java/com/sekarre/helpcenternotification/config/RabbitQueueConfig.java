@@ -9,10 +9,18 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitQueueConfig {
 
     @Value("${notification.queue.name}")
-    private String queueName;
+    private String notificationQueueName;
+
+    @Value("${notification.limiter.queue.name}")
+    private String notificationQueueLimiterName;
 
     @Bean
     public Queue notificationQueue() {
-        return new Queue(queueName, true);
+        return new Queue(notificationQueueName, true);
+    }
+
+    @Bean
+    public Queue notificationLimiterQueue() {
+        return new Queue(notificationQueueLimiterName, true);
     }
 }

@@ -10,7 +10,7 @@ public interface NotificationEmitterService {
 
     SseEmitter createNewEmitter();
 
-    void saveAndSendNotification(EventType eventType, String destinationId, Long[] usersId);
+    void sendNotification(EventType eventType, String destinationId, Long[] usersId);
 
-    void saveAndSendNotification(NotificationQueueDTO notificationQueueDTO);
+    void sendNotification(NotificationQueueDTO notificationQueueDTO);
 }

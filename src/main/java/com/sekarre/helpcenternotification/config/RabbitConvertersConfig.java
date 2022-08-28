@@ -1,5 +1,6 @@
 package com.sekarre.helpcenternotification.config;
 
+import com.sekarre.helpcenternotification.DTO.NotificationLimiterQueueDTO;
 import com.sekarre.helpcenternotification.DTO.NotificationQueueDTO;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -29,7 +30,9 @@ public class RabbitConvertersConfig {
         DefaultClassMapper classMapper = new DefaultClassMapper();
         Map<String, Class<?>> idClassMapping = new HashMap<>();
         classMapper.setTrustedPackages("notificationQueueDTO");
+        classMapper.setTrustedPackages("notificationLimiterQueueDTO");
         idClassMapping.put("notificationQueueDTO", NotificationQueueDTO.class);
+        idClassMapping.put("notificationLimiterQueueDTO", NotificationLimiterQueueDTO.class);
         classMapper.setIdClassMapping(idClassMapping);
         return classMapper;
     }
