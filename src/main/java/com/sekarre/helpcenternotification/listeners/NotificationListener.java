@@ -18,7 +18,7 @@ public class NotificationListener {
 
     @RabbitListener(queues = "${notification.queue.name}", containerFactory = "notificationListenerContainerFactory")
     public void receiveNewNotification(@Payload NotificationQueueDTO notificationQueueDTO) {
-      log.debug(notificationQueueDTO.toString());
+        log.debug(notificationQueueDTO.toString());
         notificationService.saveAndSendNotification(notificationQueueDTO);
     }
 
