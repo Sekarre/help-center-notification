@@ -9,12 +9,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.sekarre.helpcenternotification.controllers.NotificationController.BASE_EVENT_NOTIFICATION_URL;
+
 
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(value = "/api/v1/event-notifications")
+@RequestMapping(value = BASE_EVENT_NOTIFICATION_URL)
 public class NotificationController {
+
+    public static final String BASE_EVENT_NOTIFICATION_URL = "/api/v1/event-notifications";
 
     private final NotificationService notificationService;
 

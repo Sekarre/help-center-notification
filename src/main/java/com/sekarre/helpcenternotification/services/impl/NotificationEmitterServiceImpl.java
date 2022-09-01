@@ -5,6 +5,7 @@ import com.sekarre.helpcenternotification.domain.enums.EventType;
 import com.sekarre.helpcenternotification.services.NotificationEmitterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -20,7 +21,8 @@ import static com.sekarre.helpcenternotification.security.UserDetailsHelper.getC
 @RequiredArgsConstructor
 public class NotificationEmitterServiceImpl implements NotificationEmitterService {
 
-    public static final long TIMEOUT = 7_200_000L; //2hours
+    @Value("${notification.emitter.timeout:7200000}")
+    private Long timeout;
     private final Map<Long, SseEmitter> emitterMap = new ConcurrentHashMap<>();
 
     @Override
@@ -34,7 +36,7 @@ public class NotificationEmitterServiceImpl implements NotificationEmitterServic
         if (emitterMap.containsKey(userId)) {
             return emitterMap.get(userId);
         }
-        SseEmitter sseEmitter = new SseEmitter(TIMEOUT);
+        SseEmitter sseEmitter = new SseEmitter(timeout);
         sseEmitter.onCompletion(() -> {
             log.debug("Emitter with id: " + userId + " successfully finished task");
             removeEmitter(userId);
