@@ -1,4 +1,4 @@
-package com.sekarre.helpcenternotification.services;
+package com.sekarre.helpcenternotification.services.notification;
 
 
 import com.sekarre.helpcenternotification.DTO.NotificationDTO;
@@ -19,8 +19,6 @@ public interface NotificationService {
     Integer getNotificationCount(String destinationId, EventType eventType);
 
     void markNotificationAsRead(String destinationId, EventType eventType);
-
-    void markNotificationAsRead(String destinationId, EventType... eventType);
 
     void stopNotificationForDestination(NotificationLimiterQueueDTO notificationLimiterQueueDTO);
 

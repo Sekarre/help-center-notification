@@ -2,7 +2,7 @@ package com.sekarre.helpcenternotification.listeners;
 
 import com.sekarre.helpcenternotification.DTO.NotificationLimiterQueueDTO;
 import com.sekarre.helpcenternotification.DTO.NotificationQueueDTO;
-import com.sekarre.helpcenternotification.services.NotificationService;
+import com.sekarre.helpcenternotification.services.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

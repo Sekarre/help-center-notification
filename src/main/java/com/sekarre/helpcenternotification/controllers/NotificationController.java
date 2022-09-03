@@ -2,9 +2,10 @@ package com.sekarre.helpcenternotification.controllers;
 
 import com.sekarre.helpcenternotification.DTO.NotificationDTO;
 import com.sekarre.helpcenternotification.domain.enums.EventType;
-import com.sekarre.helpcenternotification.services.NotificationService;
+import com.sekarre.helpcenternotification.services.notification.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,17 +24,18 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping
-    public List<NotificationDTO> getUnreadNotifications() {
-        return notificationService.getAllUnreadNotifications();
+    public ResponseEntity<List<NotificationDTO>> getUnreadNotifications() {
+        return ResponseEntity.ok(notificationService.getAllUnreadNotifications());
     }
 
     @PatchMapping("/{destinationId}")
-    public void markEventNotificationAsRead(@PathVariable String destinationId, @RequestParam String eventType) {
+    public ResponseEntity<?> markEventNotificationAsRead(@PathVariable String destinationId, @RequestParam String eventType) {
         notificationService.markNotificationAsRead(destinationId, Enum.valueOf(EventType.class, eventType));
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{destinationId}/count")
-    public Integer getEventNotificationCount(@PathVariable String destinationId, @RequestParam String eventType) {
-        return notificationService.getNotificationCount(destinationId, Enum.valueOf(EventType.class, eventType));
+    public ResponseEntity<Integer> getEventNotificationCount(@PathVariable String destinationId, @RequestParam String eventType) {
+        return ResponseEntity.ok(notificationService.getNotificationCount(destinationId, Enum.valueOf(EventType.class, eventType)));
     }
 }

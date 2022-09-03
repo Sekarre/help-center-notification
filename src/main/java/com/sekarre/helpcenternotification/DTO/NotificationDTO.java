@@ -14,6 +14,7 @@ import static com.sekarre.helpcenternotification.util.DateUtil.DATE_TIME_FORMAT;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode
 public class NotificationDTO implements Serializable {
 
     private Long id;

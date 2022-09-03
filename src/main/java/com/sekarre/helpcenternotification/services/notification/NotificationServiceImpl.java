@@ -1,17 +1,15 @@
-package com.sekarre.helpcenternotification.services.impl;
+package com.sekarre.helpcenternotification.services.notification;
 
 import com.sekarre.helpcenternotification.DTO.NotificationDTO;
 import com.sekarre.helpcenternotification.DTO.NotificationLimiterQueueDTO;
 import com.sekarre.helpcenternotification.DTO.NotificationQueueDTO;
 import com.sekarre.helpcenternotification.domain.Notification;
-import com.sekarre.helpcenternotification.domain.NotificationLimiter;
 import com.sekarre.helpcenternotification.domain.enums.EventType;
 import com.sekarre.helpcenternotification.exceptions.notification.NotificationAuthorizationException;
 import com.sekarre.helpcenternotification.mappers.NotificationMapper;
 import com.sekarre.helpcenternotification.repositories.NotificationLimiterRepository;
 import com.sekarre.helpcenternotification.repositories.NotificationRepository;
-import com.sekarre.helpcenternotification.services.NotificationEmitterService;
-import com.sekarre.helpcenternotification.services.NotificationService;
+import com.sekarre.helpcenternotification.services.notificationemitter.NotificationEmitterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,9 +32,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void saveAndSendNotification(NotificationQueueDTO notificationQueueDTO) {
-        EventType eventType = Enum.valueOf(EventType.class, notificationQueueDTO.getEventType());
-        String destinationId = notificationQueueDTO.getDestinationId();
-        Long userId = notificationQueueDTO.getUserId();
+        final EventType eventType = Enum.valueOf(EventType.class, notificationQueueDTO.getEventType());
+        final String destinationId = notificationQueueDTO.getDestinationId();
+        final Long userId = notificationQueueDTO.getUserId();
         if (!isNotificationStopped(destinationId, userId, eventType)) {
             notificationEmitterService.sendNotification(notificationQueueDTO);
             saveNotification(eventType, destinationId, userId);
@@ -95,19 +93,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void markNotificationAsRead(String destinationId, EventType... eventTypes) {
-        for (EventType et : eventTypes) {
-            markNotificationAsRead(destinationId, et);
-        }
-    }
-
-    @Override
     public void stopNotificationForDestination(NotificationLimiterQueueDTO notificationLimiterQueueDTO) {
-        notificationLimiterRepository.save(NotificationLimiter.builder()
-                .destinationId(notificationLimiterQueueDTO.getDestinationId())
-                .eventType(Enum.valueOf(EventType.class, notificationLimiterQueueDTO.getEventType()))
-                .userId(notificationLimiterQueueDTO.getUserId())
-                .build());
+        notificationLimiterRepository.save(notificationMapper.mapNotificationLimiterQueueDTOToNotificationLimiter(notificationLimiterQueueDTO));
     }
 
     @Override
@@ -124,7 +111,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private void checkIfAuthorizedToEditNotification(Notification notification) {
-        Long userId = getCurrentUser().getId();
+        final Long userId = getCurrentUser().getId();
         if (!notification.getUserId().equals(userId)) {
             throw new NotificationAuthorizationException(
                     "User with id: + " + userId + "is not authorized to edit notification with id: " + notification.getId());

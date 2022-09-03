@@ -1,8 +1,7 @@
-package com.sekarre.helpcenternotification.services.impl;
+package com.sekarre.helpcenternotification.services.notificationemitter;
 
 import com.sekarre.helpcenternotification.DTO.NotificationQueueDTO;
 import com.sekarre.helpcenternotification.domain.enums.EventType;
-import com.sekarre.helpcenternotification.services.NotificationEmitterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +10,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.sekarre.helpcenternotification.security.UserDetailsHelper.getCurrentUser;
@@ -23,20 +23,21 @@ public class NotificationEmitterServiceImpl implements NotificationEmitterServic
 
     @Value("${notification.emitter.timeout:7200000}")
     private Long timeout;
-    private final Map<Long, SseEmitter> emitterMap = new ConcurrentHashMap<>();
+    final Map<Long, SseEmitter> emitterMap = new ConcurrentHashMap<>();
 
     @Override
-    public void removeEmitter(Long userId) {
-        emitterMap.remove(userId);
+    public boolean removeEmitter(Long userId) {
+        SseEmitter removed = emitterMap.remove(userId);
+        return !Objects.isNull(removed);
     }
 
     @Override
     public SseEmitter createNewEmitter() {
-        Long userId = getCurrentUser().getId();
+        final Long userId = getCurrentUser().getId();
         if (emitterMap.containsKey(userId)) {
             return emitterMap.get(userId);
         }
-        SseEmitter sseEmitter = new SseEmitter(timeout);
+        final SseEmitter sseEmitter = new SseEmitter(timeout);
         sseEmitter.onCompletion(() -> {
             log.debug("Emitter with id: " + userId + " successfully finished task");
             removeEmitter(userId);
@@ -51,27 +52,23 @@ public class NotificationEmitterServiceImpl implements NotificationEmitterServic
     }
 
     @Override
-    public void sendNotification(EventType eventType, String destinationId, Long[] usersId) {
-        for (Long userId : usersId) {
-            sendNotification(eventType, destinationId, userId);
-        }
+    public boolean sendNotification(NotificationQueueDTO notificationQueueDTO) {
+        final EventType eventType = Enum.valueOf(EventType.class, notificationQueueDTO.getEventType());
+        final String destinationId = notificationQueueDTO.getDestinationId();
+        final Long userId = notificationQueueDTO.getUserId();
+        return sendNotification(eventType, destinationId, userId);
     }
 
-    @Override
-    public void sendNotification(NotificationQueueDTO notificationQueueDTO) {
-        EventType eventType = Enum.valueOf(EventType.class, notificationQueueDTO.getEventType());
-        String destinationId = notificationQueueDTO.getDestinationId();
-        Long userId = notificationQueueDTO.getUserId();
-        sendNotification(eventType, destinationId, userId);
-    }
-
-    private void sendNotification(EventType eventType, String destinationId, Long userId) {
+    private boolean sendNotification(EventType eventType, String destinationId, Long userId) {
         try {
             if (emitterMap.containsKey(userId)) {
                 emitterMap.get(userId).send(SseEmitter.event().name(eventType.name()).data(destinationId).build());
+                return true;
             }
+            return false;
         } catch (IOException e) {
             log.debug("Emitter send event failed for id: " + userId + " and event: " + eventType);
+            return false;
         }
     }
 }
