@@ -1,4 +1,4 @@
-package com.sekarre.helpcenternotification.util;
+package com.sekarre.helpcenternotification.testutil;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
