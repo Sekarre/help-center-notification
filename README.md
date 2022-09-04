@@ -1,5 +1,6 @@
-# Help center chat
-Service responsible for handling notifications from other services and sending them to client
+# Help center notification
+Service responsible for handling notifications from other services and sending them to client.
+Uses RabbitMQ to retrieve notifications and SSeEmitter to send them to frontend application.
 ## Technologies
 - Java 17
 - Spring Framework 5
